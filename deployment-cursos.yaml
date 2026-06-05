@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msvc-cursos
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msvc-cursos
+  template:
+    metadata:
+      labels:
+        app: msvc-cursos
+    spec:
+      containers:
+      - image: miguelrodriguez15/msvc-cursos:latest
+        imagePullPolicy: Always
+        name: cursos
+        ports:
+        - containerPort: 8002
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-cursos
+              key: PORT
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-cursos
+              key: DB_HOST
+        - name: DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-cursos
+              key: DB_DATABASE
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: msvc-cursos
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: msvc-cursos
+              key: DB_PASSWORD
+        - name: USUARIOS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-cursos
+              key: USUARIOS_URL
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes,elk"
+        - name: LOGSTASH_HOST
+          value: "192.168.49.1"
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8002
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8002
+          periodSeconds: 15
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8002
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "400m"
+          limits:
+            memory: "800Mi"
+            cpu: "500m"

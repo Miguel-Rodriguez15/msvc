@@ -36,14 +36,14 @@ public class CursoServiceImpl implements CursoService {
     }
 
     @Override
-    public Optional<Curso> porIdConUsuarios(Long id) {
+    public Optional<Curso> porIdConUsuarios(Long id, String token) {
         Optional<Curso> o = repository.findById(id);
         if(o.isPresent()){
             Curso curso = o.get();
             if(!curso.getCursoUsuarios().isEmpty()){
                 List<Long> ids = curso.getCursoUsuarios().stream().map(cu -> cu.getUsuarioId())
                         .collect(Collectors.toList());
-                List<Usuario> usuarios = client.obtenerAlumnosPorCurso(ids);
+                List<Usuario> usuarios = client.obtenerAlumnosPorCurso(ids, token);
                 curso.setUsuarios(usuarios);
             }
             return Optional.of(curso);

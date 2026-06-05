@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msvc-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msvc-auth
+  template:
+    metadata:
+      labels:
+        app: msvc-auth
+    spec:
+      containers:
+      - image: miguelrodriguez15/msvc-auth:latest
+        name: msvc-auth
+        ports:
+        - containerPort: 9000
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: LB_AUTH_REDIRECT_URI
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: LB_AUTH_REDIRECT_URI
+        - name: LB_USUARIOS_URI
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: LB_USUARIOS_URI
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: msvc-auth
+spec:
+  ports:
+  - port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: msvc-auth
+  type: LoadBalancer
