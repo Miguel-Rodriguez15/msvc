@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msvc-usuarios
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msvc-usuarios
+  template:
+    metadata:
+      labels:
+        app: msvc-usuarios
+    spec:
+      containers:
+      - image: miguelrodriguez15/msvc-usuarios:latest
+        imagePullPolicy: Always
+        name: msvc-usuarios
+        ports:
+        - containerPort: 8001
+        env:
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: PORT
+        - name: DB_HOT
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: DB_HOT
+        - name: DB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: DB_DATABASE
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: msvc-usuarios
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: msvc-usuarios
+              key: DB_PASSWORD
+        - name: CURSOS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: CURSOS_URL
+        - name: LB_AUTH_ISSUER_URI
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: LB_AUTH_ISSUER_URI
+        - name: LB_AUTH_REDIRECT_URI
+          valueFrom:
+            configMapKeyRef:
+              name: msvc-usuarios
+              key: LB_AUTH_REDIRECT_URI
+        - name: SPRING_PROFILES_ACTIVE
+          value: "kubernetes,dev,elk"
+        - name: LOGSTASH_HOST
+          value: "192.168.49.1"
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 30
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8001
+          periodSeconds: 15
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8001
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "400m"
+          limits:
+            memory: "800Mi"
+            cpu: "500m"

@@ -15,6 +15,9 @@
     <modules>
         <module>msvc-usuarios</module>
         <module>msvc-cursos</module>
+        <module>msvc-gateway</module>
+        <module>msvc-auth</module>
+
     </modules>
     <name>proyecto-microservicios</name>
     <description>proyecto-microservicios</description>
